@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HireAI - AI Recruitment & Interview Agent</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        darkbg: {
+                            900: '#090D16',
+                            800: '#111827',
+                            700: '#1F2937',
+                            600: '#374151',
+                        },
+                        accent: {
+                            cyan: '#06b6d4',
+                            emerald: '#10b981',
+                            rose: '#f43f5e',
+                            amber: '#f59e0b',
+                            purple: '#a855f7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body
+    class="bg-darkbg-900 text-gray-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header
+        class="sticky top-0 z-40 bg-darkbg-900/80 backdrop-blur-xl border-b border-gray-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('landing')">
+                <div
+                    class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-accent-purple to-accent-cyan p-0.5 shadow-lg shadow-brand-500/20 group">
+                    <div
+                        class="w-full h-full bg-darkbg-900 rounded-[10px] flex items-center justify-center group-hover:bg-opacity-80 transition">
+                        <i
+                            class="fa-solid me-0 fa-robot text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-accent-cyan text-lg"></i>
+                    </div>
+                </div>
+                <div>
+                    <span
+                        class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-brand-400">Hire<span
+                            class="text-brand-500">AI</span></span>
+                    <span
+                        class="hidden sm:inline-block ml-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20">AGENT
+                        2.0</span>
+                </div>
+            </div>
+
+            <!-- Role / Quick View Controls -->
+            <div class="flex items-center gap-3">
+                <div
+                    class="hidden md:flex items-center bg-darkbg-800 p-1 rounded-xl border border-gray-800 text-xs font-medium">
+                    <button id="nav-btn-landing" onclick="navigateTo('landing')"
+                        class="px-3 py-1.5 rounded-lg transition-all text-gray-400 hover:text-white">Landing</button>
+                    <button id="nav-btn-recruiter" onclick="switchRole('recruiter')"
+                        class="px-3 py-1.5 rounded-lg transition-all text-gray-400 hover:text-white">Recruiter
+                        Portal</button>
+                    <button id="nav-btn-candidate" onclick="switchRole('candidate')"
+                        class="px-3 py-1.5 rounded-lg transition-all text-gray-400 hover:text-white">Candidate
+                        Portal</button>
+                </div>
+
+                <!-- Active Role Indicator -->
+                <div id="user-role-badge"
+                    class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-darkbg-800 border border-gray-700/60 text-xs font-medium text-gray-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="current-role-label">Guest View</span>
+                </div>
+
+                <!-- Theme / Reset Data -->
+                <button onclick="resetDemoData()" title="Reset Demo Data"
+                    class="p-2 text-gray-400 hover:text-amber-400 hover:bg-darkbg-800 rounded-lg transition">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main id="app-container" class="flex-1 flex flex-col relative overflow-x-hidden">
+
+        <!-- SECTION 1: LANDING PAGE -->
+        <section id="view-landing"
+            class="view-panel flex-1 flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+            <div class="relative z-10 my-auto text-center max-w-4xl mx-auto space-y-8 py-10">
+                <!-- Glowing Badge -->
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold tracking-wide uppercase shadow-lg shadow-brand-500/10 backdrop-blur-md animate-bounce-subtle">
+                    <i class="fa-solid fa-sparkles text-amber-400"></i> Smart Autonomous Recruitment Agent
+                </div>
+
+                <!-- Main Headline -->
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-tight">
+
+                    Smart Recruitment with <br />
+                    <span
+                        class="bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-accent-purple to-accent-cyan">Autonomous
+                        AI Agents</span>
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto font-normal leading-relaxed">
+                    Automate resume screening, generate evidence-based candidate evaluations, and conduct dynamic AI
+                    technical interviews with zero human bias.
+                </p>
+
+                <!-- Action CTA Buttons -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                    <button onclick="switchRole('recruiter')"
+                        class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-brand-600 to-accent-purple hover:from-brand-500 hover:to-accent-purple/90 text-white font-semibold text-base shadow-xl shadow-brand-600/30 hover:shadow-brand-500/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-user-tie"></i> Recruiter Login
+                    </button>
+
+                    <button onclick="switchRole('candidate')"
+                        class="w-full sm:w-auto px-8 py-4 rounded-xl bg-darkbg-800 hover:bg-darkbg-700 text-gray-200 border border-gray-700/80 font-semibold text-base shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-user-graduate"></i> Candidate Login
+                    </button>
+
+                    <button onclick="quickDemoStart()"
+                        class="w-full sm:w-auto px-6 py-4 rounded-xl bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 border border-brand-500/40 font-semibold text-base transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt text-amber-400"></i> Explore Live Demo
+                    </button>
+                </div>
+
+                <!-- Stats Bar -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-12 text-left">
+                    <div class="p-4 rounded-2xl bg-darkbg-800/60 border border-gray-800/80 backdrop-blur-md">
+                        <div class="text-2xl font-bold text-white">94%</div>
+                        <div class="text-xs text-gray-400 font-medium mt-1">Screening Time Saved</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-darkbg-800/60 border border-gray-800/80 backdrop-blur-md">
+                        <div class="text-2xl font-bold text-brand-400">100%</div>
+                        <div class="text-xs text-gray-400 font-medium mt-1">Evidence-Based Parsing</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-darkbg-800/60 border border-gray-800/80 backdrop-blur-md">
+                        <div class="text-2xl font-bold text-accent-cyan">Dynamic</div>
+                        <div class="text-xs text-gray-400 font-medium mt-1">AI Voice & Text Interviews</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-darkbg-800/60 border border-gray-800/80 backdrop-blur-md">
+                        <div class="text-2xl font-bold text-emerald-400">Instant</div>
+                        <div class="text-xs text-gray-400 font-medium mt-1">PDF Evaluation Reports</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Background Decorative Glows -->
+            <div
+                class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-brand-600/15 blur-[120px] rounded-full pointer-events-none">
+            </div>
+            <div
+                class="absolute top-1/3 left-1/4 w-[350px] h-[250px] bg-accent-purple/10 blur-[100px] rounded-full pointer-events-none">
+            </div>
+        </section>
+
+        <!-- SECTION 2: RECRUITER PORTAL WORKSPACE (WITH SIDEBAR & SUB-VIEWS) -->
+        <section id="view-recruiter-portal"
+            class="view-panel hidden flex-1 flex flex-col md:flex-row w-full min-h-[calc(100vh-4rem)]">
+            <!-- Left Sidebar Navigation -->
+            <aside
+                class="w-full md:w-64 bg-darkbg-800/90 border-r border-gray-800 p-4 flex flex-col justify-between shrink-0">
+                <div class="space-y-6">
+                    <!-- User Header info -->
+                    <div class="px-3 py-2 flex items-center gap-3 bg-darkbg-900/60 rounded-xl border border-gray-800">
+                        <div
+                            class="w-9 h-9 rounded-lg bg-brand-600/20 border border-brand-500/30 flex items-center justify-center text-brand-400 font-bold">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <div class="truncate">
+                            <div class="text-sm font-semibold text-white truncate">Alex Vance</div>
+                            <div class="text-[11px] text-gray-400 truncate">Lead Talent Acquisition</div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Links -->
+                    <nav class="space-y-1" id="recruiter-nav">
+                        <button onclick="showRecruiterSubView('dashboard')" id="rec-nav-dashboard"
+                            class="rec-nav-item active">
+                            <i class="fa-solid fa-chart-pie w-5"></i> 📊 Dashboard
+                        </button>
+                        <button onclick="showRecruiterSubView('create-job')" id="rec-nav-create-job"
+                            class="rec-nav-item">
+                            <i class="fa-solid fa-file-circle-plus w-5"></i> 📄 Create Job
+                        </button>
+                        <button onclick="showRecruiterSubView('candidates')" id="rec-nav-candidates"
+                            class="rec-nav-item">
+                            <i class="fa-solid fa-users w-5"></i> 👥 Candidates
+                        </button>
+                        <button onclick="showRecruiterSubView('interviews')" id="rec-nav-interviews"
+                            class="rec-nav-item">
+                            <i class="fa-solid fa-microphone-lines w-5"></i> 🎤 Interviews
+                        </button>
+                        <button onclick="showRecruiterSubView('reports')" id="rec-nav-reports" class="rec-nav-item">
+                            <i class="fa-solid fa-file-invoice w-5"></i> 📑 Reports
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Quick Action Footer in Sidebar -->
+                <div class="pt-4 border-t border-gray-800/80 space-y-2">
+                    <button onclick="openResumeUploadModal()"
+                        class="w-full py-2.5 px-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-lg shadow-brand-600/20 transition">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload Candidate Resume
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Recruiter Main Content View Slot -->
+            <div class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto bg-darkbg-900">
+
+                <!-- SUB-VIEW 2.1: DASHBOARD -->
+                <div id="rec-subview-dashboard" class="rec-subview space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">Recruiter Command Center</h2>
+                            <p class="text-sm text-gray-400">Real-time overview of job openings, candidate matches & AI
+                                interviews.</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="showRecruiterSubView('create-job')"
+                                class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-brand-600/20 flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Post New Job
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4 Metric Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div
+                            class="p-5 rounded-2xl bg-darkbg-800 border border-gray-800 relative overflow-hidden group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Active
+                                    Openings</span>
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-briefcase"></i>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-extrabold text-white mt-3" id="stat-active-jobs">4</div>
+                            <div class="text-xs text-emerald-400 flex items-center gap-1 mt-2">
+                                <i class="fa-solid fa-arrow-trend-up"></i> 2 new this week
+                            </div>
+                        </div>
+
+                        <div
+                            class="p-5 rounded-2xl bg-darkbg-800 border border-gray-800 relative overflow-hidden group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total
+                                    Applicants</span>
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-accent-purple/10 text-accent-purple flex items-center justify-center">
+                                    <i class="fa-solid fa-user-group"></i>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-extrabold text-white mt-3" id="stat-total-applicants">28</div>
+                            <div class="text-xs text-brand-400 flex items-center gap-1 mt-2">
+                                <i class="fa-solid fa-robot"></i> AI Analyzed
+                            </div>
+                        </div>
+
+                        <div
+                            class="p-5 rounded-2xl bg-darkbg-800 border border-gray-800 relative overflow-hidden group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Interviews
+                                    Scheduled</span>
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-accent-cyan/10 text-accent-cyan flex items-center justify-center">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-extrabold text-white mt-3" id="stat-scheduled-interviews">12</div>
+                            <div class="text-xs text-accent-cyan flex items-center gap-1 mt-2">
+                                <i class="fa-solid fa-clock"></i> Next in 45 min
+                            </div>
+                        </div>
+
+                        <div
+                            class="p-5 rounded-2xl bg-darkbg-800 border border-gray-800 relative overflow-hidden group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Completed
+                                    Interviews</span>
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-extrabold text-white mt-3" id="stat-completed-interviews">8</div>
+                            <div class="text-xs text-emerald-400 flex items-center gap-1 mt-2">
+                                <i class="fa-solid fa-file-pdf"></i> Reports Ready
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Main Grid (Charts & Table) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Left 2 Cols: Active Job Openings Overview -->
+                        <div class="lg:col-span-2 bg-darkbg-800 border border-gray-800 rounded-2xl p-6 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-briefcase text-brand-400"></i> Active Job Openings
+                                </h3>
+                                <button onclick="showRecruiterSubView('create-job')"
+                                    class="text-xs text-brand-400 hover:text-brand-300 font-semibold">View All
+                                    →</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead
+                                        class="bg-darkbg-900/60 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                        <tr>
+                                            <th class="py-3 px-4 rounded-l-xl">Job Title</th>
+                                            <th class="py-3 px-4">Skills Required</th>
+                                            <th class="py-3 px-4 text-center">Applicants</th>
+                                            <th class="py-3 px-4 text-center">AI Screened</th>
+                                            <th class="py-3 px-4 text-right rounded-r-xl">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dashboard-jobs-table" class="divide-y divide-gray-800 text-gray-300">
+                                        <!-- JS dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Right Col: AI Recruitment Insights & Match Funnel -->
+                        <div
+                            class="bg-darkbg-800 border border-gray-800 rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-donut text-accent-purple"></i> Skill Match Distribution
+                                </h3>
+                                <p class="text-xs text-gray-400 mt-1">AI match confidence for active applicant pool.</p>
+                                <div class="relative h-48 w-full mt-4 flex items-center justify-center">
+                                    <canvas id="skillMatchChart"></canvas>
+                                </div>
+                            </div>
+                            <div
+                                class="p-3 bg-darkbg-900/80 rounded-xl border border-gray-800/80 flex items-center gap-3">
+                                <i class="fa-solid fa-lightbulb text-amber-400 text-xl"></i>
+                                <div class="text-xs text-gray-300">
+                                    <span class="font-bold text-white">AI Suggestion:</span> Rahul shows 92% match for
+                                    Senior ML Engineer. Schedule AI interview now.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 2.2: CREATE JOB PAGE -->
+                <div id="rec-subview-create-job" class="rec-subview hidden space-y-6 max-w-4xl mx-auto">
+                    <div class="border-b border-gray-800 pb-4 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">📋 Create New Job Opening</h2>
+                            <p class="text-sm text-gray-400">Specify requirements for candidate matching and autonomous
+                                AI interview planning.</p>
+                        </div>
+                        <button onclick="autofillSampleJob()"
+                            class="px-3 py-1.5 rounded-lg bg-darkbg-800 border border-gray-700 text-xs font-medium text-brand-300 hover:bg-darkbg-700 transition flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Auto-fill Sample
+                        </button>
+                    </div>
+
+                    <form id="form-create-job" onsubmit="handleCreateJob(event)" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Job Title -->
+                            <div class="space-y-2">
+                                <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Job Title
+                                    *</label>
+                                <input type="text" id="job-title" required placeholder="e.g. Senior AI / ML Engineer"
+                                    class="w-full px-4 py-3 rounded-xl bg-darkbg-800 border border-gray-700 text-white focus:outline-none focus:border-brand-500 text-sm">
+                            </div>
+
+                            <!-- Experience Required -->
+                            <div class="space-y-2">
+                                <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Experience
+                                    Level *</label>
+                                <select id="job-experience" required
+                                    class="w-full px-4 py-3 rounded-xl bg-darkbg-800 border border-gray-700 text-white focus:outline-none focus:border-brand-500 text-sm">
+                                    <option value="1-3 years">1 - 3 Years (Junior / Mid)</option>
+                                    <option value="3-5 years" selected>3 - 5 Years (Mid / Senior)</option>
+                                    <option value="5+ years">5+ Years (Lead / Expert)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Education & Location -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Required
+                                    Education *</label>
+                                <input type="text" id="job-education" required
+                                    placeholder="e.g. B.Tech / M.Tech in Computer Science or Data Science"
+                                    class="w-full px-4 py-3 rounded-xl bg-darkbg-800 border border-gray-700 text-white focus:outline-none focus:border-brand-500 text-sm">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Required
+                                    Skills (Comma separated) *</label>
+                                <input type="text" id="job-skills" required
+                                    placeholder="e.g. Python, SQL, Machine Learning, PyTorch, Communication"
+                                    class="w-full px-4 py-3 rounded-xl bg-darkbg-800 border border-gray-700 text-white focus:outline-none focus:border-brand-500 text-sm">
+                            </div>
+                        </div>
+
+                        <!-- Job Description -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Job Description
+                                & Responsibilities *</label>
+                            <textarea id="job-description" rows="5" required
+                                placeholder="Describe core duties, key projects, and expectations for the candidate..."
+                                class="w-full px-4 py-3 rounded-xl bg-darkbg-800 border border-gray-700 text-white focus:outline-none focus:border-brand-500 text-sm leading-relaxed"></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-800">
+                            <button type="button" onclick="showRecruiterSubView('dashboard')"
+                                class="px-6 py-3 rounded-xl bg-darkbg-800 text-gray-400 hover:text-white font-semibold text-sm">Cancel</button>
+                            <button type="submit"
+                                class="px-8 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-accent-purple hover:from-brand-500 hover:to-accent-purple/90 text-white font-bold text-sm shadow-xl shadow-brand-600/30 flex items-center gap-2">
+                                <i class="fa-solid fa-plus-circle"></i> ➕ Create Job Opening
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- SUB-VIEW 2.3: CANDIDATES LIST & ANALYSIS -->
+                <div id="rec-subview-candidates" class="rec-subview hidden space-y-6">
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">👥 Candidate Roster & AI Matching
+                            </h2>
+                            <p class="text-sm text-gray-400">Review uploaded candidate profiles and evidence-based AI
+                                evaluations.</p>
+                        </div>
+                        <button onclick="openResumeUploadModal()"
+                            class="px-4 py-2 bg-gradient-to-r from-brand-600 to-accent-purple hover:from-brand-500 text-white text-xs font-semibold rounded-xl shadow-lg flex items-center gap-2">
+                            <i class="fa-solid fa-file-arrow-up"></i> Upload Resume
+                        </button>
+                    </div>
+
+                    <!-- Filter Bar -->
+                    <div
+                        class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-darkbg-800 p-4 rounded-xl border border-gray-800">
+                        <div class="relative w-full sm:w-80">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-500 text-sm"></i>
+                            <input type="text" id="candidate-search" oninput="filterCandidates()"
+                                placeholder="Search candidates or skills..."
+                                class="w-full pl-10 pr-4 py-2 rounded-lg bg-darkbg-900 border border-gray-700 text-white text-xs focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <select id="candidate-job-filter" onchange="filterCandidates()"
+                                class="px-3 py-2 rounded-lg bg-darkbg-900 border border-gray-700 text-white text-xs focus:outline-none">
+                                <option value="all">All Job Titles</option>
+                                <!-- JS options -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Candidates Cards Grid -->
+                    <div id="candidates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- JS populated candidate cards -->
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 2.4: INTERVIEWS MANAGEMENT -->
+                <div id="rec-subview-interviews" class="rec-subview hidden space-y-6">
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">🎤 AI Interviews Hub</h2>
+                            <p class="text-sm text-gray-400">Monitor live AI interview sessions, scheduled pipelines &
+                                proctoring.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-4">
+                            <h3 class="text-base font-bold text-white">Scheduled & Recent Interviews</h3>
+                            <div id="interviews-list-container" class="space-y-4">
+                                <!-- JS dynamic list -->
+                            </div>
+                        </div>
+
+                        <!-- Live AI Interviewer Tester / Preview -->
+                        <div
+                            class="bg-darkbg-800 border border-gray-800 rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <div
+                                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-cyan/10 text-accent-cyan text-xs font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-accent-cyan animate-ping"></span> Live
+                                    Simulator
+                                </div>
+                                <h3 class="text-lg font-bold text-white">Test Interview Engine</h3>
+                                <p class="text-xs text-gray-400 leading-relaxed">
+                                    Experience the exact AI interview screen as a candidate to verify dynamic question
+                                    adaptation.
+                                </p>
+                            </div>
+                            <div class="pt-4 border-t border-gray-800">
+                                <button onclick="launchInterviewForCandidate('c1')"
+                                    class="w-full py-3 rounded-xl bg-gradient-to-r from-accent-cyan to-brand-600 hover:from-accent-cyan/90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg">
+                                    <i class="fa-solid fa-play"></i> Launch Sample AI Interview (Rahul)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 2.5: REPORTS VIEW -->
+                <div id="rec-subview-reports" class="rec-subview hidden space-y-6">
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">📑 Evaluation Reports</h2>
+                            <p class="text-sm text-gray-400">Access AI interview analytics, technical evidence &
+                                downloadable PDF summaries.</p>
+                        </div>
+                    </div>
+
+                    <div id="reports-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- JS Dynamic Reports Cards -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 3: CANDIDATE PORTAL WORKSPACE -->
+        <section id="view-candidate-portal"
+            class="view-panel hidden flex-1 py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
+            <!-- Candidate Header -->
+            <div
+                class="bg-gradient-to-r from-darkbg-800 via-darkbg-800 to-brand-950/40 p-6 sm:p-8 rounded-3xl border border-gray-800 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+                <div class="flex items-center gap-5">
+                    <div
+                        class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-accent-purple p-0.5 shadow-xl">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+                            alt="Candidate Avatar" class="w-full h-full object-cover rounded-[14px]">
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-2xl font-extrabold text-white">Rahul Sharma</h2>
+                            <span
+                                class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20">Verified
+                                Candidate</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-1">Applied Position: <span
+                                class="text-brand-300 font-semibold">AI / Machine Learning Engineer</span></p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="launchInterviewForCandidate('c1')"
+                        class="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-accent-cyan hover:from-emerald-400 text-white font-bold text-sm shadow-xl shadow-emerald-500/20 flex items-center gap-2 animate-pulse-subtle">
+                        <i class="fa-solid fa-microphone"></i> Start AI Interview Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- Candidate Dashboard Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Applied Jobs List -->
+                <div class="md:col-span-2 bg-darkbg-800 border border-gray-800 rounded-2xl p-6 space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-brand-400"></i> My Submitted Applications
+                    </h3>
+                    <div class="space-y-3" id="candidate-applications-list">
+                        <!-- JS dynamic application list -->
+                    </div>
+                </div>
+
+                <!-- Interview Schedule Card -->
+                <div
+                    class="bg-darkbg-800 border border-gray-800 rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-check text-accent-cyan"></i> Upcoming AI Session
+                        </h3>
+                        <div class="p-4 rounded-xl bg-darkbg-900 border border-gray-700/60 space-y-2">
+                            <div class="text-xs font-semibold text-brand-400 uppercase tracking-wider">AI Technical
+                                Interview</div>
+                            <div class="text-sm font-bold text-white">AI / ML Engineer Assessment</div>
+                            <div class="text-xs text-gray-400 flex items-center gap-2">
+                                <i class="fa-regular fa-clock"></i> Scheduled Today (Flexible)
+                            </div>
+                            <div class="text-xs text-gray-400 flex items-center gap-2">
+                                <i class="fa-solid fa-bolt"></i> Duration: ~15 mins (5 Questions)
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="launchInterviewForCandidate('c1')"
+                            class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-arrow-right"></i> Enter Interview Room
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: AI INTERVIEW SCREEN (DYNAMIC INTERACTIVE EXPERIENCE) -->
+        <section id="view-ai-interview"
+            class="view-panel hidden flex-1 bg-darkbg-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full">
+            <!-- Header bar for interview session -->
+            <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-brand-600/20 text-brand-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-microphone-lines text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white" id="interview-session-title">AI Technical Interview
+                        </h2>
+                        <div class="text-xs text-gray-400">Candidate: <span id="interview-candidate-name"
+                                class="text-brand-300 font-semibold">Rahul Sharma</span></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <!-- Progress meter -->
+                    <div class="text-right">
+                        <div class="text-xs font-semibold text-gray-400 uppercase">Progress</div>
+                        <div class="text-sm font-bold text-brand-400" id="interview-progress-text">Question 1 of 5</div>
+                    </div>
+                    <button onclick="endInterviewEarly()"
+                        class="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold border border-red-500/20">
+                        Exit Interview
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Interview Visual Area -->
+            <div class="my-6 grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
+                <!-- AI Interviewer Visual & Audio Waveform -->
+                <div
+                    class="md:col-span-1 bg-darkbg-800 border border-gray-800 rounded-3xl p-6 flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden shadow-2xl">
+                    <!-- Glowing Avatar Orb -->
+                    <div class="relative flex items-center justify-center">
+                        <div id="ai-orb-pulse" class="absolute w-36 h-36 rounded-full bg-brand-500/20 animate-ping">
+                        </div>
+                        <div
+                            class="relative w-28 h-28 rounded-full bg-gradient-to-tr from-brand-600 via-accent-purple to-accent-cyan p-1 shadow-2xl shadow-brand-500/30">
+                            <div class="w-full h-full bg-darkbg-900 rounded-full flex items-center justify-center">
+                                <i
+                                    class="fa-solid fa-robot text-4xl text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-accent-cyan"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-extrabold text-white tracking-wide">HireAI Interviewer</h3>
+                        <p class="text-xs text-brand-400 font-medium mt-1" id="ai-status-text">Listening for response...
+                        </p>
+                    </div>
+
+                    <!-- Audio waveform effect -->
+                    <div id="audio-waveform" class="flex items-center justify-center gap-1.5 h-8">
+                        <span class="w-1.5 h-3 bg-brand-400 rounded-full wave-bar"></span>
+                        <span class="w-1.5 h-6 bg-accent-purple rounded-full wave-bar delay-75"></span>
+                        <span class="w-1.5 h-8 bg-accent-cyan rounded-full wave-bar delay-150"></span>
+                        <span class="w-1.5 h-4 bg-emerald-400 rounded-full wave-bar delay-200"></span>
+                        <span class="w-1.5 h-2 bg-brand-500 rounded-full wave-bar"></span>
+                    </div>
+
+                    <!-- Audio speak toggle button -->
+                    <button onclick="replayAIQuestionAudio()"
+                        class="px-3 py-1.5 rounded-full bg-darkbg-900 border border-gray-700 text-xs text-gray-300 hover:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-volume-high text-brand-400"></i> Read Aloud
+                    </button>
+                </div>
+
+                <!-- AI Question & Answer Box -->
+                <div
+                    class="md:col-span-2 bg-darkbg-800 border border-gray-800 rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-2xl">
+
+                    <!-- Question Display Card -->
+                    <div class="space-y-4">
+                        <div
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 text-brand-300 text-xs font-semibold border border-brand-500/20">
+                            <i class="fa-solid fa-circle-question"></i> Current Technical Challenge
+                        </div>
+                        <div class="text-xl font-semibold text-white leading-relaxed" id="current-question-text">
+                            Hello! Welcome to your technical interview. Let's begin: Explain one Python project you have
+                            worked on.
+                        </div>
+                    </div>
+
+                    <!-- Candidate Answer Input Area -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Answer /
+                                Code Snippet</label>
+                            <button onclick="toggleVoiceSpeechInput()" id="voice-input-btn"
+                                class="text-xs text-brand-400 hover:text-brand-300 font-medium flex items-center gap-1.5 bg-darkbg-900 px-3 py-1 rounded-lg border border-gray-700">
+                                <i class="fa-solid fa-microphone"></i> Voice Input
+                            </button>
+                        </div>
+
+                        <textarea id="candidate-answer-input" rows="6"
+                            placeholder="Type your detailed answer here or click 'Voice Input' to speak..."
+                            class="w-full px-4 py-3 rounded-2xl bg-darkbg-900 border border-gray-700/80 text-white font-sans text-sm focus:outline-none focus:border-brand-500 leading-relaxed resize-none"></textarea>
+
+                        <div class="flex items-center justify-between pt-2">
+                            <span class="text-xs text-gray-500" id="answer-char-count">0 characters typed</span>
+
+                            <button onclick="submitAnswerAndNext()" id="submit-answer-btn"
+                                class="px-8 py-3 rounded-xl bg-gradient-to-r from-brand-600 via-accent-purple to-accent-cyan hover:opacity-90 text-white font-bold text-sm shadow-xl shadow-brand-500/20 flex items-center gap-2 transition transform hover:-translate-y-0.5">
+                                Submit Answer <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: AI CANDIDATE ANALYSIS & INTERVIEW REPORT MODAL/VIEW -->
+        <section id="view-candidate-report"
+            class="view-panel hidden flex-1 py-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full space-y-6">
+            <!-- Header with Download PDF action -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+                <div>
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20 mb-2">
+                        <i class="fa-solid fa-shield-check"></i> AI Verified Evidence Report
+                    </div>
+                    <h2 class="text-3xl font-extrabold text-white tracking-tight" id="report-candidate-name">Candidate
+                        Interview & Skill Report</h2>
+                    <p class="text-sm text-gray-400 mt-1" id="report-job-title">Job Position: Senior AI / Machine
+                        Learning Engineer</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="printOrDownloadReport()"
+                        class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> Download PDF Report
+                    </button>
+                    <button onclick="showRecruiterSubView('candidates')"
+                        class="px-4 py-2.5 rounded-xl bg-darkbg-800 text-gray-300 hover:text-white text-xs font-semibold">
+                        Back to Roster
+                    </button>
+                </div>
+            </div>
+
+            <!-- Report Printable Container -->
+            <div id="printable-report-area"
+                class="space-y-6 bg-darkbg-800 border border-gray-800 rounded-3xl p-6 sm:p-8 text-gray-200">
+
+                <!-- Candidate Overview Banner -->
+                <div
+                    class="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-darkbg-900 border border-gray-700/60">
+                    <div>
+                        <div class="text-xs text-gray-400 uppercase font-semibold">Candidate</div>
+                        <div class="text-lg font-bold text-white" id="rep-name">Rahul Sharma</div>
+                        <div class="text-xs text-gray-400" id="rep-email">rahul.dev@example.com</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 uppercase font-semibold">Overall Match Score</div>
+                        <div class="text-2xl font-extrabold text-emerald-400" id="rep-match-score">88%</div>
+                        <div class="text-[11px] text-emerald-300">Strong Technical Fit</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 uppercase font-semibold">Interview Status</div>
+                        <div class="text-sm font-bold text-brand-400" id="rep-status">Completed (5 Questions)</div>
+                        <div class="text-[11px] text-gray-400">Duration: 14 mins</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 uppercase font-semibold">AI Hiring Recommendation</div>
+                        <span
+                            class="inline-block mt-1 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-xs border border-emerald-500/30">
+                            Recommended for Next Round
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 1. Technical Topics Discussed & Skills Match -->
+                <div class="space-y-3">
+                    <h3 class="text-lg font-bold text-white border-b border-gray-700/60 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-brand-400"></i> Required Skills & Evidence-Based
+                        Assessment
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead class="bg-darkbg-900 text-gray-400 uppercase">
+                                <tr>
+                                    <th class="py-2.5 px-3 rounded-l-lg">Skill</th>
+                                    <th class="py-2.5 px-3">Status</th>
+                                    <th class="py-2.5 px-3">Evidence from Resume & Interview</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-skills-tbody" class="divide-y divide-gray-700/60">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. Relevant Projects Match -->
+                <div class="space-y-3">
+                    <h3 class="text-lg font-bold text-white border-b border-gray-700/60 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-accent-purple"></i> Relevant Projects Verified
+                    </h3>
+                    <div id="report-projects-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Dynamic project cards -->
+                    </div>
+                </div>
+
+                <!-- 3. Dynamic Q&A Transcript & AI Observations -->
+                <div class="space-y-3">
+                    <h3 class="text-lg font-bold text-white border-b border-gray-700/60 pb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-accent-cyan"></i> Answers & AI Observations Transcript
+                    </h3>
+                    <div id="report-transcript-list" class="space-y-4">
+                        <!-- Dynamic transcript Q&A items -->
+                    </div>
+                </div>
+
+                <!-- 4. Communication & Areas Requiring Further Review -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-700/60">
+                    <div class="p-4 rounded-xl bg-darkbg-900 border border-gray-700/60 space-y-2">
+                        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-headset text-amber-400"></i> Communication & Soft Skills Observations
+                        </h4>
+                        <ul class="text-xs text-gray-300 space-y-1.5 list-disc pl-4" id="report-comm-obs">
+                            <li>Demonstrates clear, structured articulation when explaining ML model architectures.</li>
+                            <li>Provides technical examples naturally without hesitation.</li>
+                            <li>Minor area: Could explain business impact of model accuracy improvements in more
+                                financial detail.</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-darkbg-900 border border-gray-700/60 space-y-2">
+                        <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-circle-exclamation text-brand-400"></i> Areas Requiring Further Review
+                        </h4>
+                        <ul class="text-xs text-gray-300 space-y-1.5 list-disc pl-4" id="report-review-areas">
+                            <li>Probe deeper on distributed training across multi-GPU nodes in the follow-up human
+                                interview.</li>
+                            <li>Verify hands-on experience with production Kubernetes model deployment.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Executive Summary -->
+                <div class="p-5 rounded-2xl bg-brand-950/40 border border-brand-500/30 space-y-2">
+                    <h4 class="text-sm font-bold text-brand-300 uppercase tracking-wider">AI Executive Summary</h4>
+                    <p class="text-xs sm:text-sm text-gray-200 leading-relaxed" id="report-executive-summary">
+                        Candidate Rahul Sharma exhibits a strong technical background in Machine Learning, Python
+                        project execution, and SQL database optimization. The automated AI technical interview confirms
+                        solid practical knowledge in predictive modeling and feature engineering. Highly recommended for
+                        2nd round engineering team interview.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: RESUME UPLOAD & INSTANT AI PARSER -->
+    <div id="modal-resume-upload"
+        class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div
+            class="bg-darkbg-800 border border-gray-700 rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl relative">
+            <button onclick="closeResumeUploadModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <div>
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-arrow-up text-brand-400"></i> Upload Candidate Resume
+                </h3>
+                <p class="text-xs text-gray-400 mt-1">HireAI will instantly parse education, skills, projects, and
+                    calculate evidence-based job match.</p>
+            </div>
+
+            <!-- Job Selection for this resume -->
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Select Job Position to Match
+                    Against *</label>
+                <select id="modal-upload-job-select"
+                    class="w-full px-4 py-3 rounded-xl bg-darkbg-900 border border-gray-700 text-white text-sm focus:outline-none focus:border-brand-500">
+                    <!-- JS Options -->
+                </select>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div id="drop-zone" onclick="triggerFileInput()"
+                class="border-2 border-dashed border-gray-700 hover:border-brand-500 bg-darkbg-900/60 rounded-2xl p-8 text-center cursor-pointer transition space-y-3">
+                <div
+                    class="w-12 h-12 rounded-full bg-brand-500/10 text-brand-400 flex items-center justify-center mx-auto text-xl">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div>
+                    <span class="text-sm font-semibold text-white">Click to upload candidate resume</span>
+                    <span class="text-xs text-gray-400 block mt-1">Supports PDF, TXT, DOCX files or Drag & Drop</span>
+                </div>
+                <input type="file" id="resume-file-input" class="hidden" accept=".pdf,.txt,.doc,.docx"
+                    onchange="handleResumeFileSelected(event)">
+            </div>
+
+            <!-- Or Paste Text Alternative -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Or Paste Candidate
+                        Resume Text</label>
+                    <button onclick="loadSampleResumeText()"
+                        class="text-xs text-brand-400 hover:text-brand-300 font-medium">Load Sample Resume</button>
+                </div>
+                <textarea id="resume-text-input" rows="4"
+                    placeholder="Paste full resume text here for instant AI extraction..."
+                    class="w-full px-4 py-3 rounded-xl bg-darkbg-900 border border-gray-700 text-white text-xs leading-relaxed focus:outline-none focus:border-brand-500"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-700/80">
+                <button onclick="closeResumeUploadModal()"
+                    class="px-5 py-2.5 rounded-xl bg-darkbg-900 text-gray-400 hover:text-white text-xs font-semibold">Cancel</button>
+                <button onclick="processResumeExtraction()" id="btn-process-resume"
+                    class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-accent-purple hover:from-brand-500 text-white font-bold text-xs shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-bolt"></i> ⚡ Analyze Resume with AI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JS Data & Main Engine -->
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,104 @@
+/* Custom Styles & Visual Effects for HireAI */
+
+@keyframes pulseSubtle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.92; transform: scale(1.02); }
+}
+
+@keyframes bounceSubtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+@keyframes waveBar {
+    0%, 100% { height: 6px; }
+    50% { height: 28px; }
+}
+
+.animate-pulse-subtle {
+    animation: pulseSubtle 3s infinite ease-in-out;
+}
+
+.animate-bounce-subtle {
+    animation: bounceSubtle 4s infinite ease-in-out;
+}
+
+.wave-bar {
+    animation: waveBar 1.2s infinite ease-in-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #090D16;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #1F2937;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #374151;
+}
+
+/* Sidebar Nav Item Styling */
+.rec-nav-item {
+    display: flex;
+    items-center: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #9CA3AF;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.rec-nav-item:hover {
+    color: #F3F4F6;
+    background-color: #111827;
+}
+
+.rec-nav-item.active {
+    color: #FFFFFF;
+    background-color: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.3);
+    font-weight: 600;
+}
+
+/* View Transition */
+.view-panel {
+    transition: opacity 0.25s ease-in-out;
+}
+
+/* Print Rules for Reports */
+@media print {
+    header, aside, button, nav, .no-print {
+        display: none !important;
+    }
+    body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    #app-container {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    #printable-report-area {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    #printable-report-area * {
+        color: #111827 !important;
+        border-color: #e5e7eb !important;
+    }
+}
